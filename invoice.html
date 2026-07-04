@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clybourn Enterprise Catering Invoice System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: #f0f2f5;
+            padding: 40px 20px;
+            color: #333;
+        }
+        .system-container { max-width: 900px; margin: 0 auto; }
+        .system-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .system-header h1 {
+            font-size: 26px;
+            color: #1a365d;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .system-header p {
+            font-size: 13px;
+            color: #718096;
+            letter-spacing: 1px;
+        }
+        .invoice-container {
+            background: #fff;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        .letterhead {
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+            color: #fff;
+            padding: 40px 50px;
+            position: relative;
+            overflow: hidden;
+        }
+        .letterhead::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #c9a227;
+        }
+        .company-info h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .company-info .tagline {
+            font-size: 13px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #a0c4e8;
+            margin-bottom: 20px;
+        }
+        .company-details {
+            font-size: 12px;
+            line-height: 1.8;
+            color: #c5d9ed;
+        }
+        .company-details p { margin: 2px 0; }
+        .invoice-body { padding: 40px 50px; }
+        .invoice-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .invoice-title-block h2 {
+            font-size: 28px;
+            color: #1a365d;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+        }
+        .invoice-title-block .invoice-number {
+            font-size: 14px;
+            color: #718096;
+        }
+        .invoice-dates {
+            text-align: right;
+            font-size: 13px;
+            line-height: 2;
+            color: #4a5568;
+        }
+        .invoice-dates strong {
+            color: #1a365d;
+            display: inline-block;
+            width: 90px;
+            text-align: left;
+        }
+        .event-details {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 20px 25px;
+            margin-bottom: 40px;
+        }
+        .event-details h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #718096;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .event-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+        .event-item p.label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #718096;
+            margin-bottom: 4px;
+        }
+        .event-item p.value {
+            font-size: 14px;
+            color: #2d3748;
+            font-weight: 500;
+        }
+        .billing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        .billing-block h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #718096;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .billing-block p {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #2d3748;
+        }
+        .billing-block p.name {
+            font-weight: bold;
+            font-size: 15px;
+            color: #1a365d;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .items-table thead th {
+            background: #f7fafc;
+            color: #1a365d;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 2px solid #1a365d;
+            font-weight: 600;
+        }
+        .items-table thead th:last-child,
+        .items-table tbody td:last-child { text-align: right; }
+        .items-table tbody td {
+            padding: 16px;
+            font-size: 14px;
+            color: #2d3748;
+            border-bottom: 1px solid #edf2f7;
+            vertical-align: top;
+        }
+        .items-table tbody tr:hover { background: #f7fafc; }
+        .item-desc { font-weight: 500; }
+        .item-detail {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 4px;
+        }
+        .totals-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 40px;
+        }
+        .totals-box { width: 320px; }
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 14px;
+            color: #4a5568;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .totals-row.grand-total {
+            border-top: 2px solid #1a365d;
+            border-bottom: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a365d;
+            padding-top: 14px;
+            margin-top: 6px;
+        }
+        .invoice-footer {
+            background: #f7fafc;
+            padding: 30px 50px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        .payment-info h3,
+        .notes h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #718096;
+            margin-bottom: 10px;
+        }
+        .payment-info p,
+        .notes p {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #4a5568;
+        }
+        .thank-you {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #718096;
+            letter-spacing: 1px;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 28px;
+            font-size: 13px;
+            font-family: 'Georgia', serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-primary {
+            background: #1a365d;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #2c5282; }
+        .btn-secondary {
+            background: #fff;
+            color: #1a365d;
+            border: 1px solid #1a365d;
+        }
+        .btn-secondary:hover { background: #f7fafc; }
+        .btn-gold {
+            background: #c9a227;
+            color: #1a365d;
+            font-weight: bold;
+        }
+        .btn-gold:hover { background: #b8941f; }
+        .btn-green {
+            background: #38a169;
+            color: #fff;
+        }
+        .btn-green:hover { background: #2f855a; }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .status-paid {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .status-pending {
+            background: #feebc8;
+            color: #744210;
+        }
+        .status-overdue {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        .share-panel {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            display: none;
+        }
+        .share-panel.active { display: block; }
+        .share-panel h3 {
+            font-size: 16px;
+            color: #1a365d;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .share-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .share-option {
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .share-option:hover {
+            border-color: #1a365d;
+            background: #f7fafc;
+        }
+        .share-option .icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .share-option .label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #1a365d;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .share-option .hint {
+            font-size: 11px;
+            color: #718096;
+            margin-top: 4px;
+        }
+        .download-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .download-overlay.active { display: flex; }
+        .download-box {
+            background: #fff;
+            padding: 40px 50px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .download-box .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #1a365d;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .download-box p {
+            font-size: 14px;
+            color: #4a5568;
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1a365d;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-family: 'Georgia', serif;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            z-index: 10000;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+            .invoice-container {
+                box-shadow: none;
+                border: none;
+            }
+            .controls, .system-header, .share-panel, .download-overlay, .toast {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="system-container">
+        <div class="system-header">
+            <h1>Clybourn Enterprise</h1>
+            <p>Catering Invoice Management System</p>
+        </div>
+        <div class="controls">
+            <button class="btn btn-primary" onclick="window.print()">Print Invoice</button>
+            <button class="btn btn-secondary" id="downloadBtn" onclick="downloadPDF()">Download PDF</button>
+            <button class="btn btn-green" onclick="toggleShare()">Share / Send</button>
+        </div>
+        <div class="download-overlay" id="downloadOverlay">
+            <div class="download-box">
+                <div class="spinner"></div>
+                <p>Generating PDF... Please wait</p>
+            </div>
+        </div>
+        <div class="share-panel" id="sharePanel">
+            <h3>Send Invoice to Client</h3>
+            <div class="share-options">
+                <div class="share-option" onclick="shareViaEmail()">
+                    <div class="icon">&#9993;</div>
+                    <div class="label">Email</div>
+                    <div class="hint">Open default email app with invoice</div>
+                </div>
+                <div class="share-option" onclick="shareViaWhatsApp()">
+                    <div class="icon">&#128172;</div>
+                    <div class="label">WhatsApp</div>
+                    <div class="hint">Send invoice details via WhatsApp</div>
+                </div>
+                <div class="share-option" onclick="shareViaDownload()">
+                    <div class="icon">&#128229;</div>
+                    <div class="label">Download to Laptop</div>
+                    <div class="hint">Save PDF file to your computer</div>
+                </div>
+                <div class="share-option" onclick="copyInvoiceLink()">
+                    <div class="icon">&#128279;</div>
+                    <div class="label">Copy Text</div>
+                    <div class="hint">Copy invoice text for pasting</div>
+                </div>
+            </div>
+        </div>
+        <div id="invoiceArea">
+            <div class="invoice-container">
+                <header class="letterhead">
+                    <div class="company-info">
+                        <h1 contenteditable="true">Clybourn Enterprise</h1>
+                        <p class="tagline" contenteditable="true">Premium Catering Services</p>
+                        <div class="company-details">
+                            <p contenteditable="true">2 Pratt Crescent Drive, Juba Hill</p>
+                            <p contenteditable="true">Freetown</p>
+                            <p contenteditable="true">Phone: +23280 830600 | Email: albertakabbasei@gmail.com</p>
+                        </div>
+                    </div>
+                </header>
+                <div class="invoice-body">
+                    <div class="invoice-meta">
+                        <div class="invoice-title-block">
+                            <h2>Catering Invoice</h2>
+                            <p class="invoice-number" contenteditable="true">#CAT-2026-00142</p>
+                        </div>
+                        <div class="invoice-dates">
+                            <p><strong>Date Issued:</strong> <span contenteditable="true">July 2, 2026</span></p>
+                            <p><strong>Event Date:</strong> <span contenteditable="true">July 15, 2026</span></p>
+                            <p><strong>Due Date:</strong> <span contenteditable="true">July 22, 2026</span></p>
+                            <p><strong>Terms:</strong> <span contenteditable="true">Net 7 Days</span></p>
+                            <p style="margin-top:8px;"><span class="status-badge status-pending" contenteditable="true">Pending</span></p>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <h3>Event Information</h3>
+                        <div class="event-grid">
+                            <div class="event-item">
+                                <p class="label">Event Type</p>
+                                <p class="value" contenteditable="true">Wedding Reception</p>
+                            </div>
+                            <div class="event-item">
+                                <p class="label">Venue</p>
+                                <p class="value" contenteditable="true">Sierra Lighthouse Hotel</p>
+                            </div>
+                            <div class="event-item">
+                                <p class="label">Number of Guests</p>
+                                <p class="value" contenteditable="true">150</p>
+                            </div>
+                            <div class="event-item">
+                                <p class="label">Service Time</p>
+                                <p class="value" contenteditable="true">2:00 PM - 8:00 PM</p>
+                            </div>
+                            <div class="event-item">
+                                <p class="label">Event Coordinator</p>
+                                <p class="value" contenteditable="true">Mariama Sesay</p>
+                            </div>
+                            <div class="event-item">
+                                <p class="label">Booking Reference</p>
+                                <p class="value" contenteditable="true">BK-2026-0891</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="billing-grid">
+                        <div class="billing-block">
+                            <h3>Bill To</h3>
+                            <p class="name" contenteditable="true">Mr. &amp; Mrs. James Kamara</p>
+                            <p contenteditable="true">Attn: James Kamara</p>
+                            <p contenteditable="true">12 Wilberforce Street</p>
+                            <p contenteditable="true">Freetown, Sierra Leone</p>
+                            <p contenteditable="true">Phone: +23276 123456</p>
+                            <p contenteditable="true">Email: j.kamara@email.com</p>
+                        </div>
+                        <div class="billing-block">
+                            <h3>Event Location</h3>
+                            <p class="name" contenteditable="true">Sierra Lighthouse Hotel</p>
+                            <p contenteditable="true">Aberdeen Beach Road</p>
+                            <p contenteditable="true">Aberdeen, Freetown</p>
+                            <p contenteditable="true">Sierra Leone</p>
+                            <p contenteditable="true">Contact: +23279 987654</p>
+                        </div>
+                    </div>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Menu Item / Service</th>
+                                <th style="width: 15%;">Qty</th>
+                                <th style="width: 17%;">Unit Price</th>
+                                <th style="width: 18%;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="item-desc" contenteditable="true">Appetizer Platter - Mixed Canapés</div>
+                                    <div class="item-detail" contenteditable="true">Spring rolls, samosas, chicken satay, vegetable crudités</div>
+                                </td>
+                                <td contenteditable="true">150 pcs</td>
+                                <td contenteditable="true">Le 8,000</td>
+                                <td contenteditable="true">Le 1,200,000</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="item-desc" contenteditable="true">Main Course - Jollof Rice &amp; Grilled Chicken</div>
+                                    <div class="item-detail" contenteditable="true">Served with plantain, coleslaw, and pepper sauce</div>
+                                </td>
+                                <td contenteditable="true">150 plates</td>
+                                <td contenteditable="true">Le 25,000</td>
+                                <td contenteditable="true">Le 3,750,000</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="item-desc" contenteditable="true">Main Course - Grilled Fish with Cassava Leaves</div>
+                                    <div class="item-detail" contenteditable="true">Barracuda fish with traditional cassava leaf stew</div>
+                                </td>
+                                <td contenteditable="true">150 plates</td>
+                                <td contenteditable="true">Le 28,000</td>
+                                <td contenteditable="true">Le 4,200,000</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="item-desc" contenteditable="true">Dessert Station - Fruit Platter &amp; Cake</div>
+                                    <div class="item-detail" contenteditable="true">Seasonal tropical fruits, chocolate fondant, wedding cake</div>
+                                </td>
+                                <td contenteditable="true">150 srv</td>
+                                <td contenteditable="true">Le 12,000</td>
+                                <td contenteditable="true">Le 1,800,000</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="item-desc" contenteditable="true">Beverage Package - Soft Drinks &amp; Juice</div>
+                                    <div class="item-detail" contenteditable="true">Coca-Cola, Sprite, orange juice, bottled water</div>
+                                </td>
+                                <td contenteditable="true">300 bottles</td>
+                                <td contenteditable="true">Le 5,000</td>
+                                <td contenteditable="true">Le 1,500,000</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="item-desc" contenteditable="true">Table Setup &amp; Decoration</div>
+                                    <div class="item-detail" contenteditable="true">White linen, floral centerpieces, tableware, napkins</div>
+                                </td>
+                                <td contenteditable="true">15 tables</td>
+                                <td contenteditable="true">Le 150,000</td>
+                                <td contenteditable="true">Le 2,250,000</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="item-desc" contenteditable="true">Wait Staff &amp; Service Personnel</div>
+                                    <div class="item-detail" contenteditable="true">8 waiters, 2 supervisors, 1 event manager (6 hours)</div>
+                                </td>
+                                <td contenteditable="true">11 staff</td>
+                                <td contenteditable="true">Le 80,000</td>
+                                <td contenteditable="true">Le 880,000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="totals-section">
+                        <div class="totals-box">
+                            <div class="totals-row">
+                                <span>Subtotal</span>
+                                <span contenteditable="true">Le 15,580,000</span>
+                            </div>
+                            <div class="totals-row">
+                                <span>Service Charge (10%)</span>
+                                <span contenteditable="true">Le 1,558,000</span>
+                            </div>
+                            <div class="totals-row">
+                                <span>Deposit Received</span>
+                                <span contenteditable="true">-Le 5,000,000</span>
+                            </div>
+                            <div class="totals-row grand-total">
+                                <span>Balance Due</span>
+                                <span contenteditable="true">Le 12,138,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <footer class="invoice-footer">
+                    <div class="footer-grid">
+                        <div class="payment-info">
+                            <h3>Payment Information</h3>
+                            <p contenteditable="true"><strong>Bank:</strong> Sierra Leone Commercial Bank</p>
+                            <p contenteditable="true"><strong>Account Name:</strong> Clybourn Enterprise</p>
+                            <p contenteditable="true"><strong>Account #:</strong> 0123 4567 8901</p>
+                            <p contenteditable="true"><strong>Branch:</strong> Siaka Stevens Street, Freetown</p>
+                            <p contenteditable="true"><strong>Mobile Money:</strong> +23280 830600</p>
+                        </div>
+                        <div class="notes">
+                            <h3>Notes &amp; Terms</h3>
+                            <p contenteditable="true">A 50% deposit is required to confirm booking. Full payment is due 7 days before the event date. Cancellation within 48 hours of the event is non-refundable. For changes or special dietary requirements, please contact us at least 72 hours in advance. For questions, contact albertakabbasei@gmail.com or call +23280 830600.</p>
+                        </div>
+                    </div>
+                    <div class="thank-you" contenteditable="true">
+                        Thank you for choosing Clybourn Enterprise. We look forward to making your event unforgettable!
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        function toggleShare() {
+            document.getElementById('sharePanel').classList.toggle('active');
+        }
+        function showOverlay() {
+            document.getElementById('downloadOverlay').classList.add('active');
+        }
+        function hideOverlay() {
+            document.getElementById('downloadOverlay').classList.remove('active');
+        }
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(showToast._t);
+            showToast._t = setTimeout(function () {
+                toast.classList.remove('show');
+            }, 3200);
+        }
+
+        function getInvoiceData() {
+            var invoiceNumEl = document.querySelector('.invoice-number');
+            var clientNameEl = document.querySelector('.billing-block .name');
+            var totalEl = document.querySelector('.grand-total span:last-child');
+            var eventTypeEl = document.querySelector('.event-item .value');
+            var dateSpans = document.querySelectorAll('.invoice-dates span');
+
+            return {
+                invoiceNum: invoiceNumEl ? invoiceNumEl.innerText.trim() : '',
+                clientName: clientNameEl ? clientNameEl.innerText.trim() : 'Valued Client',
+                total: totalEl ? totalEl.innerText.trim() : '',
+                eventType: eventTypeEl ? eventTypeEl.innerText.trim() : '',
+                eventDate: dateSpans.length > 1 ? dateSpans[1].innerText.trim() : ''
+            };
+        }
+
+        function downloadPDF() {
+            var downloadBtn = document.getElementById('downloadBtn');
+            var originalLabel = downloadBtn.innerText;
+            downloadBtn.disabled = true;
+            downloadBtn.innerText = 'Generating...';
+            showOverlay();
+
+            var element = document.getElementById('invoiceArea');
+            var data = getInvoiceData();
+            var safeInvoiceNum = (data.invoiceNum || 'invoice').replace('#', '').replace(/\s+/g, '_');
+
+            var opt = {
+                margin: 0.5,
+                filename: 'Clybourn_Catering_Invoice_' + safeInvoiceNum + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(function () {
+                hideOverlay();
+                downloadBtn.disabled = false;
+                downloadBtn.innerText = originalLabel;
+                showToast('PDF downloaded successfully.');
+            }).catch(function () {
+                hideOverlay();
+                downloadBtn.disabled = false;
+                downloadBtn.innerText = originalLabel;
+                alert('PDF download failed. Please use the Print button and select "Save as PDF" instead.');
+            });
+        }
+
+        function shareViaEmail() {
+            var data = getInvoiceData();
+            var subject = 'Catering Invoice ' + data.invoiceNum + ' from Clybourn Enterprise';
+            var bodyLines = [
+                'Dear ' + data.clientName + ',',
+                '',
+                'Thank you for choosing Clybourn Enterprise for your ' + data.eventType + ' on ' + data.eventDate + '.',
+                '',
+                'Please find attached your catering invoice ' + data.invoiceNum + '.',
+                'Balance Due: ' + data.total,
+                '',
+                'Payment is due 7 days before the event date.',
+                '',
+                'We look forward to making your event unforgettable!',
+                '',
+                'Clybourn Enterprise',
+                'Premium Catering Services',
+                '2 Pratt Crescent Drive, Juba Hill, Freetown',
+                'Phone: +23280 830600',
+                'Email: albertakabbasei@gmail.com'
+            ];
+            var mailtoUrl = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(bodyLines.join('\n'));
+            window.location.href = mailtoUrl;
+            showToast('Opening your email app... remember to attach the downloaded PDF.');
+        }
+
+        function shareViaWhatsApp() {
+            var data = getInvoiceData();
+            var messageLines = [
+                'Catering Invoice ' + data.invoiceNum + ' from Clybourn Enterprise',
+                '',
+                'Client: ' + data.clientName,
+                'Event: ' + data.eventType + ' on ' + data.eventDate,
+                'Balance Due: ' + data.total,
+                '',
+                'Please find the attached PDF invoice. Payment is due 7 days before the event.',
+                '',
+                'Thank you for choosing Clybourn Enterprise!'
+            ];
+            var waUrl = 'https://wa.me/?text=' + encodeURIComponent(messageLines.join('\n'));
+            window.open(waUrl, '_blank');
+            showToast('Opening WhatsApp... remember to attach the downloaded PDF.');
+        }
+
+        function shareViaDownload() {
+            downloadPDF();
+        }
+
+        function copyInvoiceLink() {
+            var invoiceText = document.getElementById('invoiceArea').innerText;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(invoiceText).then(function () {
+                    showToast('Invoice text copied to clipboard!');
+                }, function () {
+                    fallbackCopy(invoiceText);
+                });
+            } else {
+                fallbackCopy(invoiceText);
+            }
+        }
+
+        function fallbackCopy(text) {
+            var textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Invoice text copied to clipboard!');
+            } catch (err) {
+                alert('Could not copy. Please select and copy manually.');
+            }
+            document.body.removeChild(textarea);
+        }
+    </script>
+</body>
+</html>
